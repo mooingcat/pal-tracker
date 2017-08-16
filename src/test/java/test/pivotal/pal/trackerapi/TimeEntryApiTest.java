@@ -1,8 +1,10 @@
 package test.pivotal.pal.trackerapi;
 
 import com.jayway.jsonpath.DocumentContext;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import io.pivotal.pal.tracker.PalTrackerApplication;
 import io.pivotal.pal.tracker.TimeEntry;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +14,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.sql.DataSource;
 import java.util.Collection;
 
 import static com.jayway.jsonpath.JsonPath.parse;
@@ -28,6 +32,16 @@ public class TimeEntryApiTest {
     private TestRestTemplate restTemplate;
 
     private TimeEntry timeEntry = new TimeEntry(123, 456, "today", 8);
+
+    @Before
+    public void setUp() throws Exception {
+        String connectionUrl = System.getenv("SPRING_DATASOURCE_URL");
+        MysqlDataSource dataSource = new MysqlDataSource();
+        dataSource.setUrl(connectionUrl);
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.execute("TRUNCATE time_entries");
+    }
 
     @Test
     public void testCreate() throws Exception {
